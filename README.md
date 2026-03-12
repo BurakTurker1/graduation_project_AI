@@ -1,91 +1,361 @@
-# Graduation Project - Camera Based Customer Analytics
+# 🧠 Yapay Zeka Tabanlı Müşteri Analiz Sistemi
 
-Bu proje, guvenlik kamerasi veya herhangi bir kameradan gelen goruntuler uzerinden musteri icin yas araligi, cinsiyet, gelis saati ve goruntu icinde gorulen urun benzeri nesneleri tespit ederek rapor uretmeyi hedefler. Cikis raporu CSV formatindadir ve analitik icin uygun sekilde gruplandirilir.
+![Python](https://img.shields.io/badge/python-3.9+-blue)
+![PyTorch](https://img.shields.io/badge/pytorch-deep%20learning-red)
+![OpenCV](https://img.shields.io/badge/opencv-computer%20vision-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-Bu README hem nasil calistirilacagini hem de kodun ne yaptigini adim adim aciklar.
+Bu proje, kamera görüntülerini analiz ederek **müşteri davranışı hakkında veri üreten bir yapay zeka sistemidir**.
 
-## Amac ve Genel Akis
+Sistem kamera görüntülerinden şu bilgileri tespit eder:
 
-Sistem 3 ana adimdan olusur:
+- 👤 **Müşteri yaş aralığı**
+- 👥 **Müşteri cinsiyeti**
+- 🕒 **Mağazaya geliş zamanı**
+- 🛍 **Görüntüde bulunan ürün benzeri nesneler**
 
-1. Kamera veya video kaynagini okur.
-2. Yuz tespiti yapar, yuzden yas ve cinsiyet tahmini uretir.
-3. Sahnedeki urun benzeri nesneleri (COCO etiketleri) tespit eder ve tum bilgileri raporlar.
+Tespit edilen tüm veriler **CSV formatında raporlanır** ve veri analizi için kullanılabilir.
 
-## Kurulum
+---
 
-Gereksinimler:
-- Python 3.9+
-- Windows icin kamera izni
+# 📌 Projenin Amacı
 
-Kurulum adimlari:
+Perakende mağazaları genellikle şu soruların cevabını bilmek ister:
 
-```powershell
+- Müşteriler en çok hangi saatlerde geliyor?
+- Kadın / erkek müşteri oranı nedir?
+- Müşterilerin yaş dağılımı nedir?
+- Kamera görüntülerinde en çok hangi ürünler görülüyor?
+
+Bu proje, yalnızca **kamera görüntülerini kullanarak** bu bilgileri otomatik olarak üretmeyi amaçlar.
+
+Elde edilen veriler şu alanlarda kullanılabilir:
+
+- mağaza analizi
+- pazarlama stratejileri
+- ürün yerleşimi
+- müşteri davranış analizi
+
+---
+
+# 🚀 Özellikler
+
+✔ Gerçek zamanlı yüz tespiti  
+✔ Yaş tahmin modeli  
+✔ Cinsiyet tahmin modeli  
+✔ COCO veri seti ile nesne tespiti  
+✔ Kamera veya video dosyası desteği  
+✔ CSV formatında rapor üretimi  
+✔ Modüler Python proje yapısı  
+✔ Genişletilebilir mimari  
+
+---
+
+# 🎥 Demo
+
+Kamera üzerinden çalışan sistemin örnek çıktısı:
+
+```
++----------------------------+
+| Yüz tespit edildi          |
+| Yaş: 25-32                 |
+| Cinsiyet: Erkek            |
+| Ürün: bottle               |
++----------------------------+
+```
+
+Gerçek ekran görüntüsü eklemek için:
+
+```
+docs/demo.png
+```
+
+dosyasını ekleyip README içine şu satırı koyabilirsiniz:
+
+```
+![Demo](docs/demo.png)
+```
+
+---
+
+# 🧩 Sistem Mimarisi
+
+```mermaid
+flowchart LR
+
+A[Kamera / Video Akışı] --> B[Kare Yakalama]
+
+B --> C[Yüz Tespiti]
+C --> D[Yaş Tahmin Modeli]
+C --> E[Cinsiyet Tahmin Modeli]
+
+B --> F[Nesne Tespit Modeli]
+
+D --> G[Müşteri Olay Verisi]
+E --> G
+F --> G
+
+G --> H[Kayıt Sistemi]
+
+H --> I[events.csv]
+H --> J[summary.csv]
+
+I --> K[Veri Analizi]
+J --> K
+```
+
+---
+
+# ⚙️ Kurulum
+
+## Gereksinimler
+
+- Python **3.9 veya üzeri**
+- Kamera veya video kaynağı
+- Windows / Linux / MacOS
+
+---
+
+## Sanal Ortam Oluşturma
+
+```bash
 python -m venv .venv
+```
+
+### Windows ortam aktivasyonu
+
+```bash
 .\.venv\Scripts\activate
+```
+
+### Bağımlılıkların kurulması
+
+```bash
 pip install -r requirements.txt
 ```
 
-## Hizli Baslangic
+---
 
-1) Modeli egit:
+# 🧠 Model Eğitimi
 
-```powershell
+Yaş ve cinsiyet tahmin modeli **FairFace veri seti** kullanılarak eğitilir.
+
+```bash
 python src/training/train.py --epochs 5 --batch-size 64
 ```
 
-Bu komut FairFace veriseti uzerinden yas ve cinsiyet siniflandirma modeli egitir. Egitim bittiginde model `models/age_gender_resnet18.pth` dosyasina kaydedilir.
+### Eğitim Parametreleri
 
-2) Kamera demosu (rapor uretir):
+| Parametre | Açıklama |
+|----------|----------|
+| epochs | Eğitim turu sayısı |
+| batch-size | Aynı anda işlenen veri sayısı |
 
-```powershell
+Eğitim tamamlandığında model şu klasöre kaydedilir:
+
+```
+models/age_gender_resnet18.pth
+```
+
+---
+
+# 🎥 Kamera Demo Çalıştırma
+
+Eğitilmiş modeli kullanarak gerçek zamanlı analiz başlatılır.
+
+```bash
 python src/inference/webcam_demo.py --model-path models/age_gender_resnet18.pth
 ```
 
-Demo cikarken rapor `reports/events.csv` ve `reports/summary.csv` olarak olusur.
+Program çalışırken:
 
-## Rapor Dosyalari
+1. Kameradan görüntü alınır  
+2. Yüzler tespit edilir  
+3. Yaş ve cinsiyet tahmini yapılır  
+4. Nesneler tespit edilir  
+5. Tüm veriler raporlanır  
 
-- `reports/events.csv`: Her bir musteri tespiti icin zaman damgasi, yas araligi, cinsiyet, urun etiketi ve guven skorlarini icerir.
-- `reports/summary.csv`: Cinsiyet, yas araligi, urun ve saat bazinda ozet sayimlarini icerir.
+---
 
-## Kamera Demolari ve Parametreler
+# 📊 Üretilen Raporlar
 
-Varsayilan komut:
+Program çalıştırıldığında `reports` klasöründe iki dosya oluşur.
 
-```powershell
+---
+
+## events.csv
+
+Her tespit edilen müşteri için detaylı kayıt içerir.
+
+| timestamp | age_range | gender | product | confidence |
+|----------|-----------|--------|--------|-----------|
+
+Örnek:
+
+```
+2026-03-10 14:22:11 , 25-32 , Male , bottle , 0.91
+```
+
+---
+
+## summary.csv
+
+Toplanan verilerin özet analizini içerir.
+
+Gruplama kriterleri:
+
+- saat
+- yaş aralığı
+- cinsiyet
+- ürün
+
+Örnek tablo:
+
+| saat | yas_grubu | cinsiyet | urun | adet |
+|-----|-----------|----------|------|------|
+
+---
+
+# 🎛 Kamera Parametreleri
+
+Varsayılan kullanım:
+
+```bash
 python src/inference/webcam_demo.py
 ```
 
-Onemli parametreler:
-- `--camera-index`: Kamera indexi (varsayilan 0).
-- `--video-path`: Kamera yerine video dosyasi kullanmak icin.
-- `--model-path`: Egittiginiz model dosyasi.
-- `--output-dir`: Rapor cikti klasoru.
-- `--face-skip`: Yuz tespitini N karede bir calistirir. Performans icin artirabilirsiniz.
-- `--product-skip`: Urun tespitini N karede bir calistirir. Performans icin artirabilirsiniz.
-- `--product-score`: Urun tespit skoru esigi.
-- `--no-products`: Urun tespitini devre disi birakir.
-- `--no-display`: Ekranda pencere acmaz, sadece rapor uretir.
+Kullanılabilecek parametreler:
 
-## Kod Yapisi (Dosya Dosya Aciklama)
+| Parametre | Açıklama |
+|----------|----------|
+| --camera-index | kamera numarası |
+| --video-path | kamera yerine video kullanır |
+| --model-path | eğitilmiş model yolu |
+| --output-dir | raporların kaydedileceği klasör |
+| --face-skip | yüz tespitini N karede bir yapar |
+| --product-skip | nesne tespitini N karede bir yapar |
+| --product-score | nesne güven eşiği |
+| --no-products | nesne tespitini kapatır |
+| --no-display | görüntü penceresini kapatır |
 
-- `src/config.py`: Tüm yol ve sabitleri tek noktada toplar. Model yolu, veri klasoru, etiket listeleri ve varsayilan ayarlar burada tutulur.
-- `src/datasets/fairface_dataset.py`: FairFace CSV dosyasini okur ve PyTorch Dataset olarak goruntu + etiket dondurur.
-- `src/utils/transforms.py`: Egitim ve dogrulama icin goruntu donusumlerini tanimlar.
-- `src/models/age_gender_model.py`: ResNet18 tabanli iki cikisli (yas ve cinsiyet) siniflandirma modelini tanimlar.
-- `src/utils/metrics.py`: Basit dogruluk hesaplamasi.
-- `src/training/train.py`: Egitim dongusu. Modeli egitir, en iyi modeli kaydeder ve egitim gecmisini CSV olarak yazar.
-- `src/utils/reporting.py`: Event listesine gore `events.csv` ve `summary.csv` raporlarini olusturur.
-- `src/inference/webcam_demo.py`: Kamera/video akisini okur, yuz tespiti + yas/cinsiyet tahmini yapar, urun etiketi tespiti yapar ve raporlar.
+---
 
-## Performans ve Optimizasyon Notlari
+# 📁 Proje Yapısı
 
-- `--face-skip` ve `--product-skip` ile tespit araliklarini artirarak FPS artisi saglayabilirsiniz.
-- Yuz tespiti OpenCV Haar Cascade ile yapilir. Hiza oncelik verir, ancak kalite dusuk isikta azalabilir.
-- Urun tespiti COCO etiketleri uzerinden genel nesne algilama yapar. Gercek magazaya ozel urun tanimasi icin ek model veya POS entegrasyonu gerekir.
-- Ilk calistirmada urun modeli agirliklarini indirmek gerekebilir. Offline ortamda `--no-products` secenegini kullanin.
+```
+src/
+│
+├── config.py
+│
+├── datasets/
+│   └── fairface_dataset.py
+│
+├── models/
+│   └── age_gender_model.py
+│
+├── training/
+│   └── train.py
+│
+├── inference/
+│   └── webcam_demo.py
+│
+└── utils/
+    ├── metrics.py
+    ├── transforms.py
+    └── reporting.py
+```
 
-## Etik ve Gizlilik Notu
+### config.py
 
-Bu tur sistemler kisisel veri isler. Kurulum yaptiginiz ortamda KVKK/GDPR gibi mevzuatlara uymak, kullanicilari bilgilendirmek ve veri saklama politikalari belirlemek gerekir.
+Tüm sabit ayarlar ve klasör yollarını içerir.
+
+### fairface_dataset.py
+
+FairFace veri setini okuyarak PyTorch veri formatına dönüştürür.
+
+### age_gender_model.py
+
+ResNet18 tabanlı yaş ve cinsiyet tahmin modeli.
+
+### transforms.py
+
+Görüntü ön işleme ve veri dönüşümleri.
+
+### metrics.py
+
+Model doğruluk hesaplamaları.
+
+### train.py
+
+Model eğitim sürecini yönetir.
+
+### webcam_demo.py
+
+Gerçek zamanlı kamera analizi yapar.
+
+### reporting.py
+
+CSV raporlarını oluşturur.
+
+---
+
+# ⚡ Performans Optimizasyonu
+
+Performansı artırmak için şu parametreler kullanılabilir:
+
+```
+--face-skip
+--product-skip
+```
+
+Bu parametreler tespit işlemini her kare yerine belirli aralıklarla çalıştırır ve FPS artırır.
+
+---
+
+# 🧰 Kullanılan Teknolojiler
+
+- Python
+- PyTorch
+- OpenCV
+- Torchvision
+- ResNet18
+- COCO Object Detection
+- FairFace Dataset
+
+---
+
+# 🔐 Gizlilik ve Etik Notu
+
+Bu sistem kamera görüntülerinden veri üretmektedir.
+
+Gerçek ortamlarda kullanılırken:
+
+- kullanıcıların bilgilendirilmesi
+- veri saklama politikalarının belirlenmesi
+- **KVKK / GDPR düzenlemelerine uyulması**
+
+gerekmektedir.
+
+---
+
+# 📈 Gelecek Geliştirmeler
+
+İleride eklenebilecek özellikler:
+
+- mağazaya özel ürün tespit modeli
+- müşteri yeniden tanıma (re-identification)
+- mağaza içi ısı haritası (heatmap)
+- gerçek zamanlı dashboard
+- POS sistemi entegrasyonu
+
+---
+
+# 📄 Lisans
+
+Bu proje **MIT Lisansı** altında yayınlanmıştır.
+
+---
+
+# 👨‍💻 Geliştirici
+
+Bu proje **bilgisayarlı görü ve derin öğrenme teknikleri kullanılarak geliştirilen bir müşteri analiz sistemidir.**

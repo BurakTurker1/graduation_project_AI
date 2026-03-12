@@ -134,12 +134,11 @@ def predict_age_gender(model, transform, device, face_bgr, age_labels, gender_la
         gender_probs = torch.softmax(outputs["gender"], dim=1)[0]
     age_idx = int(torch.argmax(age_probs).item())
     gender_idx = int(torch.argmax(gender_probs).item())
-    return (
-        age_labels[age_idx],
-        float(age_probs[age_idx].item()),
-        gender_labels[gender_idx],
-        float(gender_probs[gender_idx].item()),
-    )
+
+    age_label = age_labels[age_idx] if age_idx < len(age_labels) else "unknown"
+    gender_label = gender_labels[gender_idx] if gender_idx < len(gender_labels) else "unknown"
+
+    return age_label, float(age_probs[age_idx].item()), gender_label, float(gender_probs[gender_idx].item())
 
 
 def detect_product(model, frame, device, score_thresh: float):
@@ -150,18 +149,26 @@ def detect_product(model, frame, device, score_thresh: float):
     tensor = T.ToTensor()(rgb).to(device)
     with torch.no_grad():
         outputs = model([tensor])[0]
+
     labels = outputs.get("labels", [])
     scores = outputs.get("scores", [])
 
     best_label = "unknown"
     best_score = 0.0
+
     for label, score in zip(labels, scores):
         score_val = float(score.item())
         if score_val < score_thresh:
             break
-        label_name = COCO_LABELS[int(label)]
+
+        label_idx = int(label)
+        if label_idx < 0 or label_idx >= len(COCO_LABELS):
+            continue
+
+        label_name = COCO_LABELS[label_idx]
         if label_name == "person":
             continue
+
         if score_val > best_score:
             best_score = score_val
             best_label = PRODUCT_ALIASES.get(label_name, label_name)
@@ -271,8 +278,20 @@ def main() -> None:
                 (0, 140, 255),
                 2,
             )
-            cv2.imshow("Customer Analytics", frame)
-            if cv2.waitKey(1) & 0xFF in (ord("q"), 27):
+            cv2.putText(
+                frame,
+                "Press Q or ESC to Quit",
+                (10, 55),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 255, 0),
+                2,
+            )
+            cv2.imshow("Customer Analytics Demo", frame)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord("q") or key == 27:
+                print("Kamera kapatılıyor...")
                 break
 
         if args.max_frames and frame_idx >= args.max_frames:
@@ -282,7 +301,7 @@ def main() -> None:
     cv2.destroyAllWindows()
 
     paths = finalize_report(events, args.output_dir)
-    print(f"Report saved: {paths['events']} and {paths['summary']}")
+    print(f"Rapor kaydedildi: {paths['events']} ve {paths['summary']}")
 
 
 if __name__ == "__main__":
