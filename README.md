@@ -340,13 +340,19 @@ gerekmektedir.
 
 # 📈 Gelecek Geliştirmeler
 
-İleride eklenebilecek özellikler:
+İleride eklenebilecek özellikler ve geliştirmeler:
 
-- mağazaya özel ürün tespit modeli
-- müşteri yeniden tanıma (re-identification)
-- mağaza içi ısı haritası (heatmap)
-- gerçek zamanlı dashboard
-- POS sistemi entegrasyonu
+- mağazaya özel ürün tespit modeli  
+- müşteri yeniden tanıma (re-identification) / ID tracking  
+- Dedup optimizasyonları (aynı müşteri veya çok yakın kareleri filtreleme)  
+- geliştirilmiş yüz tespiti (MTCNN / RetinaFace)  
+- düşük ışık ve uzak mesafe için iyileştirme  
+- mağaza içi ısı haritası (heatmap)  
+- gerçek zamanlı dashboard ve grafikler  
+- web tabanlı veya masaüstü GUI ile rapor ve kayıt görüntüleme  
+- POS sistemi entegrasyonu  
+
+Bu geliştirmeler hem **performans** hem **stabilite** hem de **kullanıcı deneyimi** açısından önemli olacak.
 
 ---
 
