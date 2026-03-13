@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import sys
 from collections import deque
 from datetime import datetime
@@ -26,6 +26,7 @@ from src.config import (
     REPORT_DIR,
 )
 from src.models.age_gender_model import AgeGenderNet
+from src.utils.centroid_tracker import CentroidTracker
 from src.utils.reporting import finalize_report
 from src.utils.transforms import build_val_transforms
 
@@ -204,6 +205,8 @@ def main() -> None:
 
     frame_idx = 0
     faces_cache: List[Tuple[int, int, int, int]] = []
+    tracker = CentroidTracker(max_disappeared=40)
+    counted_customer_ids = set()
 
     while True:
         ret, frame = cap.read()
@@ -217,6 +220,13 @@ def main() -> None:
 
         if not args.no_products and frame_idx % max(1, args.product_skip) == 0:
             last_product = detect_product(product_model, frame, device, args.product_score)
+
+        rects = []
+        for (x, y, w, h) in faces_cache:
+            rects.append((x, y, x + w, y + h))
+
+        objects = tracker.update(rects)
+        centroid_to_object_id = {centroid: object_id for (object_id, centroid) in objects.items()}
 
         frame_h, frame_w = frame.shape[:2]
         for (x, y, w, h) in faces_cache:
@@ -233,18 +243,24 @@ def main() -> None:
             )
             timestamp = datetime.now()
 
-            duplicate = False
-            for item in list(recent):
-                delta = (timestamp - item["timestamp"]).total_seconds()
-                if delta <= args.dedup_seconds and iou(item["bbox"], bbox) >= args.dedup_iou:
-                    duplicate = True
-                    break
+            centroid_key = (int((x + x + w) / 2.0), int((y + y + h) / 2.0))
+            object_id = centroid_to_object_id.get(centroid_key)
 
+            duplicate = False
+            if object_id is not None and object_id in counted_customer_ids:
+                duplicate = True
+            elif object_id is None:
+                for item in list(recent):
+                    delta = (timestamp - item["timestamp"]).total_seconds()
+                    if delta <= args.dedup_seconds and iou(item["bbox"], bbox) >= args.dedup_iou:
+                        duplicate = True
+                        break
             if not duplicate:
                 product_label, product_conf = last_product
                 events.append(
                     {
                         "timestamp": timestamp.isoformat(timespec="seconds"),
+                        "customer_id": object_id if object_id is not None else -1,
                         "age": age_label,
                         "age_conf": round(age_conf, 3),
                         "gender": gender_label,
@@ -254,7 +270,8 @@ def main() -> None:
                     }
                 )
                 recent.append({"timestamp": timestamp, "bbox": bbox})
-
+                if object_id is not None:
+                    counted_customer_ids.add(object_id)
             if not args.no_display:
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 180, 0), 2)
                 label = f"{gender_label} {age_label}"
@@ -269,6 +286,21 @@ def main() -> None:
                 )
 
         if not args.no_display:
+            for (object_id, centroid) in objects.items():
+                text = f"ID {object_id}"
+
+                cv2.putText(
+                    frame,
+                    text,
+                    (centroid[0] - 10, centroid[1] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 0),
+                    2,
+                )
+
+                cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+
             cv2.putText(
                 frame,
                 f"Product: {last_product[0]}",
@@ -291,7 +323,7 @@ def main() -> None:
 
             key = cv2.waitKey(1) & 0xFF
             if key == ord("q") or key == 27:
-                print("Kamera kapatılıyor...")
+                print("Kamera kapatÄ±lÄ±yor...")
                 break
 
         if args.max_frames and frame_idx >= args.max_frames:

@@ -1,5 +1,7 @@
 metric,value,count
-gender,Male,1
-age,20-29,1
-product,unknown,1
-hour,9,1
+gender,Male,7
+age,20-29,6
+age,0-2,1
+product,unknown,5
+product,broccoli,2
+hour,15,7

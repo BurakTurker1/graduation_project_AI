@@ -1,2 +1,8 @@
-timestamp,age,age_conf,gender,gender_conf,product,product_conf
-2026-03-12T09:27:19,20-29,0.776,Male,1.0,unknown,0.0
+timestamp,customer_id,age,age_conf,gender,gender_conf,product,product_conf
+2026-03-13T15:51:23,0,20-29,0.75,Male,1.0,unknown,0.0
+2026-03-13T15:51:45,1,20-29,0.838,Male,1.0,unknown,0.0
+2026-03-13T15:51:56,2,20-29,0.356,Male,0.755,broccoli,0.703
+2026-03-13T15:52:03,3,20-29,0.828,Male,1.0,unknown,0.0
+2026-03-13T15:52:04,4,0-2,0.218,Male,0.633,unknown,0.0
+2026-03-13T15:52:36,5,20-29,0.329,Male,0.592,unknown,0.0
+2026-03-13T15:52:38,6,20-29,0.485,Male,0.654,broccoli,0.673
